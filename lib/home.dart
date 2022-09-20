@@ -13,23 +13,24 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final Map<String, BluetoothDevice> _scannedDevices = {};
+  late BleProvider bleProvider;
+
+  void _handleScanPress() async {
+    if (bleProvider.scanning) {
+      await bleProvider.stopScan();
+    } else {
+      await bleProvider.scanForNearby(
+          services: [Guid("65241910-0253-11e7-93ae-92361f002671")],
+          onScanResult: (d) {
+            setState(() => _scannedDevices[d.id.id] = d);
+            return false;
+          });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bleProvider = Provider.of<BleProvider>(context, listen: true);
-    void handleScanPress() async {
-      if (bleProvider.scanning) {
-        await bleProvider.stopScan();
-      } else {
-        await bleProvider.scanForNearby(onScanResult: (r) {
-          print("onScanResult with ${r.id.id}");
-          setState(() => _scannedDevices[r.id.id] = r);
-          return false;
-        });
-      }
-    }
-
-    print("scanning is ${bleProvider.scanning}");
+    bleProvider = Provider.of<BleProvider>(context, listen: true);
 
     return Scaffold(
       appBar: AppBar(
@@ -37,7 +38,7 @@ class _HomePageState extends State<HomePage> {
         actions: [
           IconButton(
             icon: Icon(bleProvider.scanning ? Icons.search_off : Icons.search),
-            onPressed: bleProvider.hasPermissions ? handleScanPress : null,
+            onPressed: bleProvider.hasPermissions ? _handleScanPress : null,
           ),
         ],
       ),

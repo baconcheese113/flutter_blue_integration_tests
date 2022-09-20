@@ -19,3 +19,15 @@ Future<void> pumpUntilFound(
   }
   timer.cancel();
 }
+
+// Useful for waiting for mock BLE delays
+Future<void> tapAndWaitMs(
+  WidgetTester widgetTester,
+  Finder finder,
+  int milliseconds,
+) async {
+  await widgetTester.tap(finder);
+  await widgetTester.pumpAndSettle();
+  await Future.delayed(Duration(milliseconds: milliseconds));
+  await widgetTester.pumpAndSettle();
+}

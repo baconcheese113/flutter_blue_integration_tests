@@ -1,8 +1,12 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+const String GENERIC_ACCESS_SERVICE_UUID = "00001800-0000-1000-8000-00805F9B34FB";
+const String DEVICE_NAME_CHARACTERISTIC_UUID = "00002a00-0000-1000-8000-00805F9B34FB";
 
 class BleProvider extends ChangeNotifier {
   final _flutterBlue = FlutterBluePlus.instance;
@@ -58,10 +62,12 @@ class BleProvider extends ChangeNotifier {
           !await _requestPermission(Permission.bluetoothScan) ||
           !await _requestPermission(Permission.bluetoothConnect)) {
         hasPermissions = false;
+        notifyListeners();
         return false;
       }
     }
     hasPermissions = true;
+    notifyListeners();
     return true;
   }
 
@@ -82,6 +88,10 @@ class BleProvider extends ChangeNotifier {
     notifyListeners();
     BluetoothDevice? ret;
     await for (final r in _flutterBlue.scan(timeout: const Duration(seconds: 20), withServices: services)) {
+      if (!r.advertisementData.connectable) {
+        print("not connectable");
+        continue;
+      }
       if (onScanResult(r.device)) {
         ret = r.device;
         break;
@@ -99,14 +109,15 @@ class BleProvider extends ChangeNotifier {
     return _flutterBlue.stopScan();
   }
 
-  Future<BluetoothCharacteristic> discoverAndGetCharacteristic(
+  Future<BluetoothCharacteristic?> discoverAndGetCharacteristic(
     BluetoothDevice d,
     String serviceUuid,
     String charUuid,
   ) async {
-    final services = await d.discoverServices();
-    final service = services.firstWhere((s) => s.uuid == Guid(serviceUuid));
-    final char = service.characteristics.firstWhere((c) => c.uuid == Guid(charUuid));
+    final existingServices = await d.services.first;
+    final services = existingServices.isNotEmpty ? existingServices : await d.discoverServices();
+    final service = services.firstWhereOrNull((s) => s.uuid == Guid(serviceUuid));
+    final char = service?.characteristics.firstWhereOrNull((c) => c.uuid == Guid(charUuid));
     return char;
   }
 }
