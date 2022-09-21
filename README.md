@@ -1,3 +1,5 @@
+<a href="https://github.com/baconcheese113/flutter_blue_integration_tests/actions"><img src="https://github.com/baconcheese113/flutter_blue_integration_tests/workflows/main/badge.svg" alt="Build Status"></a>
+
 # flutter_blue_integration_tests
 
 Sample project demonstrating how to implement integration tests with Flutter_Blue_Plus
