@@ -75,4 +75,4 @@ jobs:
         with:
           api-level: ${{ matrix.api-level }}
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          script: flutter test integration_test --verbose
+          script: flutter test integration_test # --verbose
