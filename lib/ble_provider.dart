@@ -9,7 +9,6 @@ const String GENERIC_ACCESS_SERVICE_UUID = "00001800-0000-1000-8000-00805F9B34FB
 const String DEVICE_NAME_CHARACTERISTIC_UUID = "00002a00-0000-1000-8000-00805F9B34FB";
 
 class BleProvider extends ChangeNotifier {
-  final _flutterBlue = FlutterBluePlus.instance;
   bool scanning = false;
   bool hasPermissions = false;
 
@@ -32,8 +31,8 @@ class BleProvider extends ChangeNotifier {
 
   Future<bool> _tryPowerOnBle() async {
     print("about to turn on bluetooth");
-    if (!await _flutterBlue.isOn) {
-      bool isNowOn = await _flutterBlue.turnOn();
+    if (!await FlutterBluePlus.instance.isOn) {
+      bool isNowOn = await FlutterBluePlus.instance.turnOn();
       if (!isNowOn) {
         print("Unable to turn on bluetooth");
         return false;
@@ -83,11 +82,11 @@ class BleProvider extends ChangeNotifier {
     required bool Function(BluetoothDevice) onScanResult,
     List<Guid> services = const [],
   }) async {
-    if (scanning) await _flutterBlue.stopScan();
+    if (scanning) await FlutterBluePlus.instance.stopScan();
     scanning = true;
     notifyListeners();
     BluetoothDevice? ret;
-    await for (final r in _flutterBlue.scan(timeout: const Duration(seconds: 20), withServices: services)) {
+    await for (final r in FlutterBluePlus.instance.scan(timeout: const Duration(seconds: 20), withServices: services)) {
       if (!r.advertisementData.connectable) {
         print("not connectable");
         continue;
@@ -97,7 +96,7 @@ class BleProvider extends ChangeNotifier {
         break;
       }
     }
-    await _flutterBlue.stopScan();
+    await FlutterBluePlus.instance.stopScan();
     scanning = false;
     notifyListeners();
     return ret;
@@ -106,7 +105,7 @@ class BleProvider extends ChangeNotifier {
   Future<void> stopScan() {
     scanning = false;
     notifyListeners();
-    return _flutterBlue.stopScan();
+    return FlutterBluePlus.instance.stopScan();
   }
 
   Future<BluetoothCharacteristic?> discoverAndGetCharacteristic(
